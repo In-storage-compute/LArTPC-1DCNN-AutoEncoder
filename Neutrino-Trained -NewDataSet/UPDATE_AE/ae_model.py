@@ -12,8 +12,10 @@ import tensorflow as tf
 from tensorflow import keras
 import tqdm
 import Custom_MSE as funcs
-
+import pandas as pd
 import time
+from keras import backend as K
+from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout, Dense,Flatten, AveragePooling1D
@@ -47,6 +49,7 @@ class Autoencoder:
         x = UpSampling1D(6)(x)
         decoded = Conv1D(filters=1, kernel_size=5,  activation = "linear")(x)
         return Model(self.input_wave, decoded)
+    
 
 def main():
     np.random.seed(42)
@@ -56,49 +59,62 @@ def main():
     if len(args) == 2 and args[0] == '-plane' and args[1] in planes_:
         start_time = time.time()
         wireplane = args[1]
-        path = '../processed_data/current/'
+        path = '../proc\
+            
+        
+        
+        
+        essed_data/current/'
         
         with tf.device('/GPU:0'):
             x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std = funcs.load_data(path, wireplane)
-        
+
+            y_true_rescaled = []
+            print('rescalling y_true...')
+            for i in tqdm.trange(len(y_train_scaled)):
+                if sum(y_train_scaled[i]) == 0:
+                    y_true_rescaled.append(y_train_scaled[i])
+                else:
+                    y_true_rescaled.append((std*y_train_scaled[i]+mean))
+            y_true_rescaled = np.array(y_true_rescaled)
+
+            sig_ranges = []
+            print('finding ranges where there are signals: ') 
+            for i in tqdm.trange(len(y_true_rescaled)):
+                wave =  y_true_rescaled[i]
+                sig_ranges.append(funcs.merge_ranges(wave, 5))
+            print("finding ranges where there are no signals: ")
+            no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
+
+            # Converting the numpy array to a tensor.
             #-------------------------------------------------------------------------
             def custom_mse2(y_true, y_pred):
-                np_y_pred = y_pred.numpy()
                 np_y_true = y_true.numpy()
-                batch_size = np_y_pred.shape[0]
+                batch_size = 2048  # hard coded for now
+                
+                batchIdx = int(int(alpha).numpy())
+                curr_sig_ranges = sig_ranges[batchIdx*batch_size:]
+                curr_no_sig_ranges = no_sig_ranges[batchIdx*batch_size:]
 
-                y_true_rescaled = []
-                print('rescalling y_true...')
-                for i in tqdm.trange(len(np_y_true)):
-                    if sum(np_y_true[i]) == 0:
-                        y_true_rescaled.append(np_y_true[i])
-                    else:
-                        y_true_rescaled.append((std*np_y_true[i]+mean))
-                y_true_rescaled = np.array(y_true_rescaled)
-
-                sig_ranges = []
-                print('finding ranges where there are signals: ') 
-                for i in tqdm.trange(len(y_true_rescaled)):
-                    wave =  y_true_rescaled[i]
-                    sig_ranges.append(funcs.merge_ranges(wave, 5))
-                print("finding ranges where there are no signals: ")
-                no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
-
-                for i in range(len(sig_ranges)):
-                    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
+                for i in range(10):
+                    print('DEBUG MESSAGE: ',curr_sig_ranges[i], '---', curr_no_sig_ranges[i])
 
                 print('calculating MSEs')
                 total_mse = 0
-                for i in tqdm.trange(len(y_true_rescaled)):
-                    if sum(y_true_rescaled[i]) == 0:
+                for i in tqdm.trange(len(np_y_true)):
+                    if sum(np_y_true[i]) == 0:
                         # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
                         total_mse += funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
                         # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
+
                     else:
                         # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
-                        total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], sig_ranges[i], no_sig_ranges[i])
+                        total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], curr_sig_ranges[i], curr_no_sig_ranges[i])
                 
                 loss = total_mse/batch_size
+                batch_size
+                print('TESTTT:: --', alpha)
+                print('-ALPHA: ', int(int(alpha).numpy()))
 
                 return loss
 
@@ -119,17 +135,34 @@ def main():
                 layer.trainable=True                                                           
             compiled_model.compile(optimizer='adam', loss=custom_mse2, run_eagerly=True)
             compiled_model.summary()
-            
-            
+
+            alpha = K.variable(0)
+            class NewCallback(keras.callbacks.Callback):
+                def __init__(self, alpha):
+                    self.alpha = alpha       
+                def on_train_batch_begin(self, batch, logs={}):
+                    K.set_value(self.alpha, batch)
+                
+                def on_epoch_begin(self, epochs, logs={}):
+                    K.set_value(self.alpha, 0)
+                
+
+            print('-----------TRAINING STARTING NOW----------------')
+
+            x_train_, x_valid, y_train_, y_valid =  train_test_split(x_train_scaled, y_test_scaled, 
+                                                                     test_size=0.2, shuffle=False)
+
             history = compiled_model.fit(x_train_scaled,                                                              
                         y_train_scaled,                                                            
-                        batch_size=2,                                              
+                        batch_size=2048,                                              
                         epochs=50,                                                      
-                        callbacks=None, # callbacks=callbacks_list,                         
-                        validation_split=0.2, shuffle=False,                                               
+                        callbacks=[NewCallback(alpha)], # callbacks=callbacks_list,
+                        validation_split=0.2, shuffle=False,                                                               
                         verbose=1)
-        
-        compiled_model.save("TEST_" + wireplane + "plane_nu.h5")
+            
+            
+                    
+        compiled_model.save("w_1_1" + wireplane + "plane_nu.h5")
 
         #plt.figure(figsize=(12, 8))                                                     
         #plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
