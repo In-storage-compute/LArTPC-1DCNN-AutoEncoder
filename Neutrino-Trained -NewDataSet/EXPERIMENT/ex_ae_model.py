@@ -146,14 +146,14 @@ def main():
             history = compiled_model.fit(x_train_scaled,                                                              
                         y_train_scaled,                                                            
                         batch_size=1,                                              
-                        epochs=1,                                                      
+                        epochs=10,                                                      
                         callbacks= None, #[NewCallback(alpha)], # callbacks=callbacks_list,
                         validation_split=0.2, shuffle=False,                                                                       
                         verbose=1)
             
             
                     
-        compiled_model.save("batch_size1" + wireplane + "plane_nu.h5")
+        compiled_model.save("batch_size1_epochs_10" + wireplane + "plane_nu.h5")
 
         #plt.figure(figsize=(12, 8))                                                     
         #plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
