@@ -148,9 +148,10 @@ def segment_mse_helper(expected, prediction, signal_ranges, non_sig_ranges):
         pred_wave = prediction[range_[0]:range_[1]]
         no_sig_mse += calculate_single_mse_helper(expected_wave, pred_wave)
     
-    w_1, w_2 = 1, 1
+    w_1, w_2 = 1, 0.7
 
     mse = w_1*sig_mse + w_2*no_sig_mse
+    print(w_1, w_2)
 
     return mse
 

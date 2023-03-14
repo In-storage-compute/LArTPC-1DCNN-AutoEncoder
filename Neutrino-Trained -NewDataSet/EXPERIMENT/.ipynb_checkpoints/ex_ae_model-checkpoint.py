@@ -122,9 +122,13 @@ def main():
             for i,layer in enumerate(compiled_model.layers):                                      
                 print(i,layer.name)
                 
-            for layer in compiled_model.layers[:6]:                                               
+            # layer_num = 5 --> unfreeze last layer of 1dccnn and make params trainable
+            # layer_nums = 6 --> all layers of 1dcnn are frozen and non-trainable
+            layer_num = 5    
+                
+            for layer in compiled_model.layers[:layer_num]:                                               
                 layer.trainable=False                                                          
-            for layer in compiled_model.layers[6:]:                                               
+            for layer in compiled_model.layers[layer_num:]:                                               
                 layer.trainable=True                                                           
             compiled_model.compile(optimizer='adam', loss=custom_mse2, run_eagerly=True)
             compiled_model.summary()
@@ -141,29 +145,42 @@ def main():
                 
 
             print('-----------TRAINING STARTING NOW----------------')
-
+            
+            
+            earlystop = tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss",
+                min_delta=0,
+                patience=3,
+                verbose=0,
+                mode="auto",
+                baseline=None,
+                restore_best_weights=True,
+            )
 
             history = compiled_model.fit(x_train_scaled,                                                              
                         y_train_scaled,                                                            
                         batch_size=1,                                              
-                        epochs=10,                                                      
-                        callbacks= None, #[NewCallback(alpha)], # callbacks=callbacks_list,
+                        epochs=50,                                                      
+                        callbacks= [earlystop], #[NewCallback(alpha)], # callbacks=callbacks_list,
                         validation_split=0.2, shuffle=False,                                                                       
                         verbose=1)
             
             
                     
-        compiled_model.save("batch_size1_epochs_10" + wireplane + "plane_nu.h5")
+        compiled_model.save("batch_size1_epochs_50_w1_1-w2_dot7_unfreeze_lastCNN_layer_" + wireplane + "plane_nu.h5")
 
-        #plt.figure(figsize=(12, 8))                                                     
-        #plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
-        #plt.plot(history.history['val_loss'], "r", label="Loss of validation data", antialiased=True)
-        #plt.title('Model Loss',fontsize=15)                                            
-        #plt.ylabel('Loss (MSE)', fontsize=12)                                                 
-        #plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
-        #plt.legend(fontsize=12)                                                                    
+        plt.figure(figsize=(12, 8))                                                     
+        plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
+        plt.plot(history.history['val_loss'], "r", label="Loss of validation data", antialiased=True)
+        plt.title('Model Loss',fontsize=15)                                            
+        plt.ylabel('Loss (MSE)', fontsize=12)                                                 
+        plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
+        plt.legend(fontsize=12)
+        filename = 'batch_size1_epochs_50_w1_1-w2_dot7_unfreeze_lastCNN_layer_' + wireplane + '_loss.png'
+        plt.savefig(filename, facecolor='w', bbox_inches='tight')
+        plt.close()
         #plt.show()
-        # 
+         
         print("train time:", time.time() - start_time, "to run")     
 
 
