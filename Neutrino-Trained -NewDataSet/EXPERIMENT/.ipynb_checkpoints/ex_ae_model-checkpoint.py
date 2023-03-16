@@ -124,7 +124,7 @@ def main():
                 
             # layer_num = 5 --> unfreeze last layer of 1dccnn and make params trainable
             # layer_nums = 6 --> all layers of 1dcnn are frozen and non-trainable
-            layer_num = 5    
+            layer_num = 6    
                 
             for layer in compiled_model.layers[:layer_num]:                                               
                 layer.trainable=False                                                          
@@ -167,7 +167,7 @@ def main():
             
             
                     
-        compiled_model.save("batch_size1_epochs_50_w1_1-w2_dot7_unfreeze_lastCNN_layer_" + wireplane + "plane_nu.h5")
+        compiled_model.save("batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -176,7 +176,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'batch_size1_epochs_50_w1_1-w2_dot7_unfreeze_lastCNN_layer_' + wireplane + '_loss.png'
+        filename = 'batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
