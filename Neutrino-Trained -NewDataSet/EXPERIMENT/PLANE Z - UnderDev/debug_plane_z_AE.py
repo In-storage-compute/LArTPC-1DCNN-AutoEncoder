@@ -69,7 +69,7 @@ def main():
             #-------------------------------------------------------------------------
             def custom_mse2(y_true, y_pred):
                 np_y_true = y_true.numpy()
-                batch_size = 1024  # hard coded for now
+                batch_size = 2048  # hard coded for now
                 y_true_rescaled = []
                 
                 #print('rescalling y_true...')
@@ -105,7 +105,7 @@ def main():
                         total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], sig_ranges[i], no_sig_ranges[i])
                 
                 loss = total_mse/batch_size
-                batch_size
+                #batch_size
                 #print('TESTTT:: --', alpha)
                 #print('-ALPHA: ', int(int(alpha).numpy()))
 
@@ -159,7 +159,7 @@ def main():
 
             history = compiled_model.fit(x_train_scaled,                                                              
                         y_train_scaled,                                                            
-                        batch_size=1024,                                              
+                        batch_size=2048,                                              
                         epochs=50,                                                      
                         callbacks= [earlystop], #[NewCallback(alpha)], # callbacks=callbacks_list,
                         validation_split=0.2, shuffle=False,                                                                       
@@ -167,7 +167,7 @@ def main():
             
             
                     
-        compiled_model.save("batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        compiled_model.save("debug_batch_size2048_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -176,7 +176,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
+        filename = 'debug_batch_size2048_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
