@@ -90,9 +90,19 @@ def main():
                 batchIdx = int(int(alpha).numpy())
                 left_idx = batchIdx*batch_size
                 loop_len = 2048
-                print("BATCH IDX: " + str(left_idx))
-                curr_sig_ranges = sig_ranges[left_idx:]
-                curr_no_sig_ranges = no_sig_ranges[left_idx:]
+                print("START IDX RANGES: " + str(left_idx))
+
+                # if at validation mode: end of epoch, access ranges for validation
+                # otherwise access ranges for train
+                # sig_ranges_train, sig_ranges_valid, no_sig_ranges_train, no_sig_ranges_valid
+
+                if valid_flag:
+                    curr_sig_ranges = sig_ranges_valid
+                    curr_no_sig_ranges =  no_sig_ranges_valid
+                    print('DEBUG: starting validation: ' + str(len(curr_no_sig_ranges)))
+                else:
+                    curr_sig_ranges = sig_ranges_train[left_idx:]
+                    curr_no_sig_ranges = no_sig_ranges_train[left_idx:]
 
                 for i in range(10):
                     print('DEBUG MESSAGE: ',curr_sig_ranges[i], '---', curr_no_sig_ranges[i])
@@ -131,53 +141,6 @@ def main():
 
                 #-------------------------------------------------------------------------------
 
-            def for_valid(y_true, y_pred):
-                print('DEBUG - sig_ranges_len: ' + str(len(sig_ranges)))
-                np_y_true = y_true.numpy()
-                batch_size = 2048  # hard coded for now
-                
-                batchIdx = int(int(alpha).numpy())
-                left_idx = batchIdx*batch_size
-                loop_len = 2048
-                print("BATCH IDX: " + str(left_idx))
-                curr_sig_ranges = sig_ranges[left_idx:]
-                curr_no_sig_ranges = no_sig_ranges[left_idx:]
-
-                for i in range(10):
-                    print('DEBUG MESSAGE: ',curr_sig_ranges[i], '---', curr_no_sig_ranges[i])
-
-                print('calculating MSEs')
-                total_mse = 0
-                print('np_true len: ' + str(len(np_y_true)), np_y_true.shape)
-                
-                if batchIdx == 39:
-                    for idx in tqdm.trange(128):
-                        if sum(np_y_true[idx]) == 0:
-                            # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
-                            total_mse += funcs.calculate_single_mse_helper(y_true[idx], y_pred[idx])
-                            # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
-
-                        else:
-                            # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
-                            total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
-                            batch_size = 128
-                    
-                else:
-                    print('else case')
-                    for idx in tqdm.trange(loop_len):
-                        if sum(np_y_true[idx]) == 0:
-                            # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
-                            total_mse += funcs.calculate_single_mse_helper(y_true[idx], y_pred[idx])
-                            # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
-
-                        else:
-                            # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
-                            total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
-                
-                loss = total_mse/batch_size
-
-                return loss
-            
             
             model = load_model('../latest_models/model_' + wireplane + 'plane_nu.h5')
             autoencoder = Autoencoder(200, model, x_train_scaled)
@@ -195,23 +158,26 @@ def main():
             compiled_model.summary()
 
             alpha = K.variable(0)
+            valid_flag = K.variable(False)
             class NewCallback(keras.callbacks.Callback):
-                def __init__(self, alpha):
-                    self.alpha = alpha       
+                def __init__(self, alpha, valid_flag):
+                    self.alpha = alpha
+                    self.valid_flag = valid_flag       
                 def on_train_batch_begin(self, batch, logs={}):
                     K.set_value(self.alpha, batch)
                 
                 def on_epoch_begin(self, epochs, logs={}):
                     K.set_value(self.alpha, 0)
+                    K.set_value(self.valid_flag, False)
+                def on_epoch_end(self, epochs, logs={}):
+                    K.set_value(self.valid_flag, True)
                 
 
             print('-----------TRAINING STARTING NOW----------------')
 
-            x_train_, x_valid, y_train_, y_valid =  train_test_split(x_train_scaled, y_test_scaled, 
-                                                                     test_size=0.2, shuffle=False)
+            x_train_, x_valid, y_train_, y_valid, sig_ranges_train, sig_ranges_valid, no_sig_ranges_train, no_sig_ranges_valid =  train_test_split(x_train_scaled, 
+                            y_test_scaled, sig_ranges, no_sig_ranges, test_size=0.2, shuffle=False)
             
-            sig_ranges = sig_ranges[:len(x_train_)]
-            no_sig_ranges = no_sig_ranges[:len(x_train_)]
 
             earlystop = tf.keras.callbacks.EarlyStopping(
                 monitor="val_loss",
