@@ -90,9 +90,20 @@ def main():
                 batchIdx = int(int(alpha).numpy())
                 left_idx = batchIdx*batch_size
                 loop_len = 2048
-                print("BATCH IDX: " + str(left_idx))
-                curr_sig_ranges = sig_ranges[left_idx:]
-                curr_no_sig_ranges = no_sig_ranges[left_idx:]
+                print("START IDX RANGES: " + str(left_idx))
+
+                # if at validation mode: end of epoch, access ranges for validation
+                # otherwise access ranges for train
+                # sig_ranges_train, sig_ranges_valid, no_sig_ranges_train, no_sig_ranges_valid
+
+                
+                if int(int(valid_flag).numpy()) == 1:
+                    curr_sig_ranges = sig_ranges_valid
+                    curr_no_sig_ranges =  no_sig_ranges_valid
+                    print('DEBUG: starting validation: ' + str(len(curr_no_sig_ranges)))
+                else:
+                    curr_sig_ranges = sig_ranges_train[left_idx:]
+                    curr_no_sig_ranges = no_sig_ranges_train[left_idx:]
 
                 for i in range(10):
                     print('DEBUG MESSAGE: ',curr_sig_ranges[i], '---', curr_no_sig_ranges[i])
@@ -130,7 +141,7 @@ def main():
                 return loss
 
                 #-------------------------------------------------------------------------------
-            
+
             
             model = load_model('../latest_models/model_' + wireplane + 'plane_nu.h5')
             autoencoder = Autoencoder(200, model, x_train_scaled)
@@ -148,23 +159,26 @@ def main():
             compiled_model.summary()
 
             alpha = K.variable(0)
+            valid_flag = K.variable(0)
             class NewCallback(keras.callbacks.Callback):
-                def __init__(self, alpha):
-                    self.alpha = alpha       
+                def __init__(self, alpha, valid_flag):
+                    self.alpha = alpha
+                    self.valid_flag = valid_flag       
                 def on_train_batch_begin(self, batch, logs={}):
                     K.set_value(self.alpha, batch)
                 
                 def on_epoch_begin(self, epochs, logs={}):
                     K.set_value(self.alpha, 0)
+                    K.set_value(self.valid_flag, 0)
+                def on_epoch_end(self, epochs, logs={}):
+                    K.set_value(self.valid_flag, 1)
                 
 
             print('-----------TRAINING STARTING NOW----------------')
 
-            x_train_, x_valid, y_train_, y_valid =  train_test_split(x_train_scaled, y_test_scaled, 
-                                                                     test_size=0.2, shuffle=False)
+            x_train_, x_valid, y_train_, y_valid, sig_ranges_train, sig_ranges_valid, no_sig_ranges_train, no_sig_ranges_valid =  train_test_split(x_train_scaled, 
+                            y_test_scaled, sig_ranges, no_sig_ranges, test_size=0.2, shuffle=False)
             
-            sig_ranges = sig_ranges[:len(x_train_)]
-            no_sig_ranges = no_sig_ranges[:len(x_train_)]
 
             earlystop = tf.keras.callbacks.EarlyStopping(
                 monitor="val_loss",
@@ -180,7 +194,7 @@ def main():
                         y_train_,                                                            
                         batch_size=2048,                                              
                         epochs=75,                                                      
-                        callbacks=[NewCallback(alpha), earlystop], # callbacks=callbacks_list,
+                        callbacks=[NewCallback(alpha, valid_flag), earlystop], # callbacks=callbacks_list,
                         validation_data=(x_valid, y_valid),                                                               
                         verbose=1)
             

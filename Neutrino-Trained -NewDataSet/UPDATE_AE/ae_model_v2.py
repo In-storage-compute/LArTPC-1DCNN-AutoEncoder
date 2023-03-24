@@ -112,29 +112,9 @@ def main():
                 total_mse = 0
                 print('np_true len: ' + str(len(np_y_true)), np_y_true.shape)
                 
-                if batchIdx == 39:
-                    for idx in tqdm.trange(128):
-                        if sum(np_y_true[idx]) == 0:
-                            # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
-                            total_mse += funcs.calculate_single_mse_helper(y_true[idx], y_pred[idx])
-                            # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
-
-                        else:
-                            # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
-                            total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
-                            batch_size = 128
-                    
-                else:
-                    print('else case')
-                    for idx in tqdm.trange(loop_len):
-                        if sum(np_y_true[idx]) == 0:
-                            # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
-                            total_mse += funcs.calculate_single_mse_helper(y_true[idx], y_pred[idx])
-                            # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
-
-                        else:
-                            # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
-                            total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
+                #if batchIdx == 39:
+                
+                diff_square = tf.math.square(y_true
                 
                 loss = total_mse/batch_size
 
