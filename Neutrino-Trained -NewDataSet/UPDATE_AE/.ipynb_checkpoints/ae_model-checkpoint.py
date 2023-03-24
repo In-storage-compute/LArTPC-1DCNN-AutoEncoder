@@ -177,7 +177,7 @@ def main():
             print('-----------TRAINING STARTING NOW----------------')
 
             x_train_, x_valid, y_train_, y_valid, sig_ranges_train, sig_ranges_valid, no_sig_ranges_train, no_sig_ranges_valid =  train_test_split(x_train_scaled, 
-                            y_test_scaled, sig_ranges, no_sig_ranges, test_size=0.2, shuffle=False)
+                            y_train_scaled, sig_ranges, no_sig_ranges, test_size=0.2, shuffle=False)
             
 
             earlystop = tf.keras.callbacks.EarlyStopping(
@@ -196,11 +196,11 @@ def main():
                         epochs=75,                                                      
                         callbacks=[NewCallback(alpha, valid_flag), earlystop], # callbacks=callbacks_list,
                         validation_data=(x_valid, y_valid),                                                               
-                        verbose=1)
+                         verbose=1)
             
             
                     
-        compiled_model.save("TESSSSSSSSSST" + wireplane + "plane_nu.h5")
+        compiled_model.save("TESSSSSSSSSST_prv_NEW_" + wireplane + "plane_nu.h5")
 
 
         plt.figure(figsize=(12, 8))                                                     
@@ -210,7 +210,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'TESSSSSSSSSSS-w2_dot7' + wireplane + '_loss.png'
+        filename = 'TESSSSSSSSSSS-w2_dot7' + wireplane + '_prev_NEW_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         print("train time:", time.time() - start_time, "to run")     

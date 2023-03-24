@@ -79,6 +79,16 @@ def main():
                 sig_ranges.append(funcs.merge_ranges(wave, 5))
             print("finding ranges where there are no signals: ")
             no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
+            
+            DEBUG_LIST = []
+            
+            # debug - 
+            def for_valid(y_true, y_pred):
+                print('------------- VALIDATION -------')
+                np_y_true = y_true.numpy()
+                print(sig_ranges_valid[0:3], print(len(sig_ranges_valid)))
+                print(len(np_y_true))
+                return tf.math.reduce_mean(tf.math.square(y_true - y_pred))
 
             # Converting the numpy array to a tensor.
             #-------------------------------------------------------------------------
@@ -95,13 +105,18 @@ def main():
                 # if at validation mode: end of epoch, access ranges for validation
                 # otherwise access ranges for train
                 # sig_ranges_train, sig_ranges_valid, no_sig_ranges_train, no_sig_ranges_valid
-
                 
+                curr_sig_ranges = sig_ranges_train[left_idx:]
+                curr_no_sig_ranges = no_sig_ranges_train[left_idx:]
+                '''
+                print('DEBUG - VALIDATION: ', DEBUG_LIST, len(DEBUG_LIST))
                 if int(int(valid_flag).numpy()) == 1:
                     curr_sig_ranges = sig_ranges_valid
                     curr_no_sig_ranges =  no_sig_ranges_valid
                     print('DEBUG: starting validation: ' + str(len(curr_no_sig_ranges)))
+                    DEBUG_LIST.append(cur_sig_ranges)
                 else:
+                    print('valid_flag = 0')
                     curr_sig_ranges = sig_ranges_train[left_idx:]
                     curr_no_sig_ranges = no_sig_ranges_train[left_idx:]
 
@@ -111,7 +126,8 @@ def main():
                 print('calculating MSEs')
                 total_mse = 0
                 print('np_true len: ' + str(len(np_y_true)), np_y_true.shape)
-                
+                '''
+                '''
                 if batchIdx == 39:
                     for idx in tqdm.trange(128):
                         if sum(np_y_true[idx]) == 0:
@@ -135,10 +151,10 @@ def main():
                         else:
                             # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
                             total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
-                
-                loss = total_mse/batch_size
-
-                return loss
+                '''
+                #loss = total_mse/batch_size
+                debug_mode_loss = tf.math.reduce_mean(tf.math.square(y_true - y_pred))
+                return debug_mode_loss
 
                 #-------------------------------------------------------------------------------
 
@@ -193,14 +209,15 @@ def main():
             history = compiled_model.fit(x_train_,                                                              
                         y_train_,                                                            
                         batch_size=2048,                                              
-                        epochs=75,                                                      
+                        epochs=10,
                         callbacks=[NewCallback(alpha, valid_flag), earlystop], # callbacks=callbacks_list,
-                        validation_data=(x_valid, y_valid),                                                               
-                         verbose=1)
+                        #validation_split=0.2, shuffle=False,
+                        validation_data = (x_valid, y_valid, for_valid),
+                        verbose=2)
             
             
                     
-        compiled_model.save("TESSSSSSSSSST_prv_NEW_" + wireplane + "plane_nu.h5")
+        #compiled_model.save("TESSSSSSSSSST_prv" + wireplane + "plane_nu.h5")
 
 
         plt.figure(figsize=(12, 8))                                                     
@@ -210,8 +227,8 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'TESSSSSSSSSSS-w2_dot7' + wireplane + '_prev_NEW_loss.png'
-        plt.savefig(filename, facecolor='w', bbox_inches='tight')
+        filename = 'TESSSSSSSSSSS-w2_dot7' + wireplane + '_prev_loss.png'
+        #plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         print("train time:", time.time() - start_time, "to run")     
 

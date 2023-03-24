@@ -134,6 +134,7 @@ def calculate_single_mse_helper(seqment_wave, seqment_pred_wave):
     #single_mse = np.float32(single_mse) 
     return single_mse
 
+'''
 # helper method to calculate mse given some ranges
 def segment_mse_helper(expected, prediction, signal_ranges, non_sig_ranges):
     w1 = 1
@@ -148,6 +149,27 @@ def segment_mse_helper(expected, prediction, signal_ranges, non_sig_ranges):
     mse = tf.math.reduce_mean(squares)
         
             
+    return mse
+'''
+
+# helper method to calculate mse given some ranges
+def segment_mse_helper(expected, prediction, signal_ranges, non_sig_ranges):
+    sig_mse = 0
+    no_sig_mse = 0
+    for range_ in signal_ranges:
+        expected_wave = expected[range_[0]:range_[1]]
+        pred_wave = prediction[range_[0]:range_[1]]
+        sig_mse += calculate_single_mse_helper(expected_wave, pred_wave)
+    
+    for range_ in non_sig_ranges:
+        expected_wave = expected[range_[0]:range_[1]]
+        pred_wave = prediction[range_[0]:range_[1]]
+        no_sig_mse += calculate_single_mse_helper(expected_wave, pred_wave)
+    
+    w_1, w_2 = 1, 0.7
+
+    mse = w_1*sig_mse + w_2*no_sig_mse
+
     return mse
 
 def calculate_single_mse(expected, prediction, signal_ranges, non_sig_ranges):

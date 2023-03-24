@@ -94,6 +94,7 @@ def main():
 
                 #print('calculating MSEs')
                 total_mse = 0
+                print('DEBUG - IMPORTANT --------- : ' + str(len(np_y_true)))
                 for i in tqdm.trange(len(np_y_true)):
                     if sum(np_y_true[i]) == 0:
                         # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
@@ -167,7 +168,7 @@ def main():
             
             
                     
-        compiled_model.save("batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        #compiled_model.save("batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -177,7 +178,7 @@ def main():
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
         filename = 'batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
-        plt.savefig(filename, facecolor='w', bbox_inches='tight')
+        #plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
          
