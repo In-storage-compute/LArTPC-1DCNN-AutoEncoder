@@ -85,11 +85,11 @@ def main():
             def custom_mse2(y_true, y_pred):
                 print('DEBUG - sig_ranges_len: ' + str(len(sig_ranges)))
                 np_y_true = y_true.numpy()
-                batch_size = 2048  # hard coded for now
+                batch_size = 512  # hard coded for now
                 
                 batchIdx = int(int(alpha).numpy())
                 left_idx = batchIdx*batch_size
-                loop_len = 2048
+                loop_len = 512
                 print("START IDX RANGES: " + str(left_idx))
 
                 # if at validation mode: end of epoch, access ranges for validation
@@ -112,8 +112,8 @@ def main():
                 total_mse = 0
                 print('np_true len: ' + str(len(np_y_true)), np_y_true.shape)
                 
-                if batchIdx == 39:
-                    for idx in tqdm.trange(128):
+                if batchIdx == 156:
+                    for idx in tqdm.trange(32):
                         if sum(np_y_true[idx]) == 0:
                             # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
                             total_mse += funcs.calculate_single_mse_helper(y_true[idx], y_pred[idx])
@@ -122,7 +122,7 @@ def main():
                         else:
                             # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
                             total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
-                            batch_size = 128
+                            batch_size = 32
                     
                 else:
                     print('else case')
@@ -192,7 +192,7 @@ def main():
             
             history = compiled_model.fit(x_train_,                                                              
                         y_train_,                                                            
-                        batch_size=2048,                                              
+                        batch_size=512,                                              
                         epochs=75,                                                      
                         callbacks=[NewCallback(alpha, valid_flag), earlystop], # callbacks=callbacks_list,
                         validation_data=(x_valid, y_valid),                                                               
@@ -200,7 +200,7 @@ def main():
             
             
                     
-        compiled_model.save("TESSSSSSSSSST_prv_NEW_" + wireplane + "plane_nu.h5")
+        compiled_model.save("TESSSSSS_512_SSSST_prv_NEW_" + wireplane + "plane_nu.h5")
 
 
         plt.figure(figsize=(12, 8))                                                     
@@ -210,7 +210,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'TESSSSSSSSSSS-w2_dot7' + wireplane + '_prev_NEW_loss.png'
+        filename = 'TESSS_512_SSSSSSSS-w2_dot7' + wireplane + '_prev_NEW_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         print("train time:", time.time() - start_time, "to run")     
