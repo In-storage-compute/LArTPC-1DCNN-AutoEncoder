@@ -1,7 +1,6 @@
 """
 Van Tha Bik Lian
 Jan. 06, 2023
-
 train autoencoder using 1DCNN roi finder
 """
 
@@ -64,55 +63,79 @@ def main():
         with tf.device('/GPU:0'):
             x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std = funcs.load_data(path, wireplane)
 
+            y_true_rescaled = []
+            print('rescalling y_true...')
+            for i in tqdm.trange(len(y_train_scaled)):
+                if sum(y_train_scaled[i]) == 0:
+                    y_true_rescaled.append(y_train_scaled[i])
+                else:
+                    y_true_rescaled.append((std*y_train_scaled[i]+mean))
+            y_true_rescaled = np.array(y_true_rescaled)
+
+            sig_ranges = []
+            print('finding ranges where there are signals: ') 
+            for i in tqdm.trange(len(y_true_rescaled)):
+                wave =  y_true_rescaled[i]
+                sig_ranges.append(funcs.merge_ranges(wave, 5))
+            print("finding ranges where there are no signals: ")
+            no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
 
             # Converting the numpy array to a tensor.
             #-------------------------------------------------------------------------
             def custom_mse2(y_true, y_pred):
+                print('DEBUG - sig_ranges_len: ' + str(len(sig_ranges)))
                 np_y_true = y_true.numpy()
-                batch_size = 2048  # hard coded for now
-                y_true_rescaled = []
+                batch_size = 1024  # hard coded for now
                 
-                #print('rescalling y_true...')
-                for i in tqdm.trange(len(np_y_true)):
-                    if sum(np_y_true[i]) == 0:
-                        y_true_rescaled.append(np_y_true[i])
-                    else:
-                        y_true_rescaled.append((std*np_y_true[i]+mean))
-                y_true_rescaled = np.array(y_true_rescaled)
+                batchIdx = int(int(alpha).numpy())
+                left_idx = batchIdx*batch_size
 
-                sig_ranges = []
-                print('finding ranges where there are signals: ') 
-                for i in tqdm.trange(len(y_true_rescaled)):
-                    wave =  y_true_rescaled[i]
-                    sig_ranges.append(funcs.merge_ranges(wave, 5))
-                print("finding ranges where there are no signals: ")
-                no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
                 
+                if int(int(valid_flag).numpy()) == 1:
+                    curr_sig_ranges = sig_ranges_valid
+                    curr_no_sig_ranges =  no_sig_ranges_valid
+                    print('DEBUG: starting validation: ' + str(len(curr_no_sig_ranges)))
+                else:
+                    curr_sig_ranges = sig_ranges_train[left_idx:]
+                    curr_no_sig_ranges = no_sig_ranges_train[left_idx:]
 
                 for i in range(10):
-                    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
+                    print('DEBUG MESSAGE: ',curr_sig_ranges[i], '---', curr_no_sig_ranges[i])
 
                 print('calculating MSEs')
                 total_mse = 0
-                for i in tqdm.trange(len(np_y_true)):
-                    if sum(np_y_true[i]) == 0:
-                        # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
-                        total_mse += funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
-                        # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
+                print('np_true len: ' + str(len(np_y_true)), np_y_true.shape)
+                
+                if batchIdx == 156:
+                    for idx in tqdm.trange(32):
+                        if sum(np_y_true[idx]) == 0:
+                            # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
+                            total_mse += 0.7*funcs.calculate_single_mse_helper(y_true[idx], y_pred[idx])
+                            # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
 
-                    else:
-                        # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
-                        total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], sig_ranges[i], no_sig_ranges[i])
+                        else:
+                            # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
+                            total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
+                            batch_size = 32
+                    
+                else:
+                    print('else case')
+                    for idx in tqdm.trange(loop_len):
+                        if sum(np_y_true[idx]) == 0:
+                            # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
+                            total_mse += funcs.calculate_single_mse_helper(y_true[idx], y_pred[idx])
+                            # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
+
+                        else:
+                            # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
+                            total_mse += funcs.calculate_single_mse(y_true[idx], y_pred[idx], curr_sig_ranges[idx], curr_no_sig_ranges[idx])
                 
                 loss = total_mse/batch_size
-                #batch_size
-                #print('TESTTT:: --', alpha)
-                #print('-ALPHA: ', int(int(alpha).numpy()))
 
                 return loss
 
                 #-------------------------------------------------------------------------------
-            
+
             
             model = load_model('../../latest_models/model_' + wireplane + 'plane_nu.h5')
             autoencoder = Autoencoder(200, model, x_train_scaled)
@@ -122,52 +145,56 @@ def main():
             for i,layer in enumerate(compiled_model.layers):                                      
                 print(i,layer.name)
                 
-            # layer_num = 5 --> unfreeze last layer of 1dccnn and make params trainable
-            # layer_nums = 6 --> all layers of 1dcnn are frozen and non-trainable
-            layer_num = 6    
-                
-            for layer in compiled_model.layers[:layer_num]:                                               
+            for layer in compiled_model.layers[:6]:                                               
                 layer.trainable=False                                                          
-            for layer in compiled_model.layers[layer_num:]:                                               
+            for layer in compiled_model.layers[6:]:                                               
                 layer.trainable=True                                                           
             compiled_model.compile(optimizer='adam', loss=custom_mse2, run_eagerly=True)
             compiled_model.summary()
 
             alpha = K.variable(0)
+            valid_flag = K.variable(0)
             class NewCallback(keras.callbacks.Callback):
-                def __init__(self, alpha):
-                    self.alpha = alpha       
+                def __init__(self, alpha, valid_flag):
+                    self.alpha = alpha
+                    self.valid_flag = valid_flag       
                 def on_train_batch_begin(self, batch, logs={}):
                     K.set_value(self.alpha, batch)
                 
                 def on_epoch_begin(self, epochs, logs={}):
                     K.set_value(self.alpha, 0)
+                    K.set_value(self.valid_flag, 0)
+                def on_epoch_end(self, epochs, logs={}):
+                    K.set_value(self.valid_flag, 1)
                 
 
             print('-----------TRAINING STARTING NOW----------------')
+
+            x_train_, x_valid, y_train_, y_valid, sig_ranges_train, sig_ranges_valid, no_sig_ranges_train, no_sig_ranges_valid =  train_test_split(x_train_scaled, 
+                            y_train_scaled, sig_ranges, no_sig_ranges, test_size=0.2, shuffle=False)
             
-            
+
             earlystop = tf.keras.callbacks.EarlyStopping(
                 monitor="val_loss",
                 min_delta=0,
-                patience=2,
-                verbose=1,
+                patience=3,
+                verbose=0,
                 mode="auto",
                 baseline=None,
                 restore_best_weights=True,
             )
-
-            history = compiled_model.fit(x_train_scaled,                                                              
-                        y_train_scaled,                                                            
-                        batch_size=2048,                                              
-                        epochs=50,                                                      
-                        callbacks= [earlystop], #[NewCallback(alpha)], # callbacks=callbacks_list,
-                        validation_split=0.2, shuffle=False,                                                                       
-                        verbose=1)
+            
+            history = compiled_model.fit(x_train_,                                                              
+                        y_train_,                                                            
+                        batch_size=512,                                              
+                        epochs=75,                                                      
+                        callbacks=[NewCallback(alpha, valid_flag), earlystop], # callbacks=callbacks_list,
+                        validation_data=(x_valid, y_valid),                                                               
+                         verbose=1)
             
             
                     
-        compiled_model.save("debug_batch_size2048_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        compiled_model.save("w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -176,8 +203,8 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'debug_batch_size2048_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
-        plt.savefig(filename, facecolor='w', bbox_inches='tight')
+        filename = 'w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
+        #plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
          
@@ -190,5 +217,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

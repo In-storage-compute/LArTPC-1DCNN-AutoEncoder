@@ -4,10 +4,10 @@ from os.path import isfile, join
 import tensorflow as tf
 
 def load_data(path, wireplane):
-    x_train = np.load(path+'x_train_U.npy')
-    x_test = np.load(path+'x_test_U.npy')
-    y_train = np.load(path+'y_train_AE_U.npy')
-    y_test = np.load(path+'y_test_AE_U.npy')
+    x_train = np.load(path+'x_train_Z.npy')
+    x_test = np.load(path+'x_test_Z.npy')
+    y_train = np.load(path+'y_train_AE_Z.npy')
+    y_test = np.load(path+'y_test_AE_Z.npy')
     mean = x_train.mean()
     std = x_train.std()
 
@@ -151,7 +151,6 @@ def segment_mse_helper(expected, prediction, signal_ranges, non_sig_ranges):
     w_1, w_2 = 1, 0.7
 
     mse = w_1*sig_mse + w_2*no_sig_mse
-    #print(w_1, w_2)
 
     return mse
 
