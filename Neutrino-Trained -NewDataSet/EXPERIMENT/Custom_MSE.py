@@ -151,7 +151,6 @@ def segment_mse_helper(expected, prediction, signal_ranges, non_sig_ranges):
     w_1, w_2 = 1, 0.7
 
     mse = w_1*sig_mse + w_2*no_sig_mse
-    print(w_1, w_2)
 
     return mse
 

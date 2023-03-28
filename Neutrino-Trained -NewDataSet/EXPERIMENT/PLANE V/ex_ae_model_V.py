@@ -69,7 +69,7 @@ def main():
             #-------------------------------------------------------------------------
             def custom_mse2(y_true, y_pred):
                 np_y_true = y_true.numpy()
-                batch_size = 1  # hard coded for now
+                batch_size = 2048  # hard coded for now
                 y_true_rescaled = []
                 
                 #print('rescalling y_true...')
@@ -81,20 +81,19 @@ def main():
                 y_true_rescaled = np.array(y_true_rescaled)
 
                 sig_ranges = []
-                #print('finding ranges where there are signals: ') 
+                print('finding ranges where there are signals: ') 
                 for i in tqdm.trange(len(y_true_rescaled)):
                     wave =  y_true_rescaled[i]
                     sig_ranges.append(funcs.merge_ranges(wave, 5))
-                #print("finding ranges where there are no signals: ")
+                print("finding ranges where there are no signals: ")
                 no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
                 
 
-                #for i in range(len(sig_ranges)):
-                #    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
+                for i in range(10):
+                    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
 
-                #print('calculating MSEs')
+                print('calculating MSEs')
                 total_mse = 0
-                print('DEBUG - IMPORTANT --------- : ' + str(len(np_y_true)))
                 for i in tqdm.trange(len(np_y_true)):
                     if sum(np_y_true[i]) == 0:
                         # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
@@ -106,7 +105,7 @@ def main():
                         total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], sig_ranges[i], no_sig_ranges[i])
                 
                 loss = total_mse/batch_size
-                batch_size
+                #batch_size
                 #print('TESTTT:: --', alpha)
                 #print('-ALPHA: ', int(int(alpha).numpy()))
 
@@ -151,8 +150,8 @@ def main():
             earlystop = tf.keras.callbacks.EarlyStopping(
                 monitor="val_loss",
                 min_delta=0,
-                patience=3,
-                verbose=0,
+                patience=2,
+                verbose=1,
                 mode="auto",
                 baseline=None,
                 restore_best_weights=True,
@@ -168,7 +167,7 @@ def main():
             
             
                     
-        compiled_model.save("batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        compiled_model.save("debug_batch_size2048_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -177,7 +176,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
+        filename = 'debug_batch_size2048_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
