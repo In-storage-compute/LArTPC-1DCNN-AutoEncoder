@@ -166,7 +166,7 @@ def main():
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
         filename = 'results/w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
-        #plt.savefig(filename, facecolor='w', bbox_inches='tight')
+        plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
          

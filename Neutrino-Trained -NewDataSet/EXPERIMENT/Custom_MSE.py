@@ -4,10 +4,10 @@ from os.path import isfile, join
 import tensorflow as tf
 
 def load_data(path, wireplane):
-    x_train = np.load(path+'x_train_U.npy')
-    x_test = np.load(path+'x_test_U.npy')
-    y_train = np.load(path+'y_train_AE_U.npy')
-    y_test = np.load(path+'y_test_AE_U.npy')
+    x_train = np.load(path+'x_train_' + wireplane + '.npy')
+    x_test = np.load(path+'x_test_' + wireplane + '.npy')
+    y_train = np.load(path+'y_train_AE_' + wireplane + '.npy')
+    y_test = np.load(path+'y_test_AE_' + wireplane + '.npy')
     mean = x_train.mean()
     std = x_train.std()
 
