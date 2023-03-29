@@ -13,24 +13,9 @@ def load_data(path, wireplane):
 
     x_train_scaled = (x_train-mean)/std
     x_test_scaled = (x_test-mean)/std
-
-    y_train_scaled = []
-    for i in range(len(y_train)):
-        if sum(y_train[i]) == 0:
-            y_train_scaled.append(y_train[i])
-        else:
-            scaled = (y_train[i]-mean)/std
-            y_train_scaled.append(scaled)
-    y_train_scaled = np.array(y_train_scaled)
-
-    y_test_scaled = []
-    for i in range(len(y_test)):
-        if sum(y_test[i]) == 0:
-            y_test_scaled.append(y_test[i])
-        else:
-            scaled = (y_test[i]-mean)/std
-            y_test_scaled.append(scaled)
-    y_test_scaled = np.array(y_test_scaled)
+    
+    y_train_scaled = (y_train-mean)/std
+    y_test_scaled = (y_test-mean)/std
 
     return x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std
 

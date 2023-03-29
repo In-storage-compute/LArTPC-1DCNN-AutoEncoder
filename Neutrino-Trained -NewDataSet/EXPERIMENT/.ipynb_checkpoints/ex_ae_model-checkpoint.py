@@ -63,6 +63,8 @@ def main():
         
         with tf.device('/GPU:0'):
             x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std = funcs.load_data(path, wireplane)
+            np.save('results/mean_AE_' + wireplane, mean)
+            np.save('results/std_AE_' + wireplane, std)
 
 
             # Converting the numpy array to a tensor.
@@ -70,15 +72,8 @@ def main():
             def custom_mse2(y_true, y_pred):
                 np_y_true = y_true.numpy()
                 batch_size = 1  # hard coded for now
-                y_true_rescaled = []
                 
-                #print('rescalling y_true...')
-                for i in tqdm.trange(len(np_y_true)):
-                    if sum(np_y_true[i]) == 0:
-                        y_true_rescaled.append(np_y_true[i])
-                    else:
-                        y_true_rescaled.append((std*np_y_true[i]+mean))
-                y_true_rescaled = np.array(y_true_rescaled)
+                y_true_rescaled = np_y_true*std+mean
 
                 sig_ranges = []
                 #print('finding ranges where there are signals: ') 
@@ -89,23 +84,17 @@ def main():
                 no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
                 
 
-                #for i in range(len(sig_ranges)):
-                #    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
+                for i in range(len(sig_ranges)):
+                    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
 
                 #print('calculating MSEs')
                 total_mse = 0
                 for i in tqdm.trange(len(np_y_true)):
-                    if sum(np_y_true[i]) == 0:
-                        # total_mse += funcs.calculate_single_mse_helper(np_y_true[i], np_y_pred[i])
-                        total_mse += 0.7*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
-                        # total_mse += 0.3*funcs.calculate_single_mse_helper(y_true[i], y_pred[i])
-
-                    else:
                         # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
                         total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], sig_ranges[i], no_sig_ranges[i])
                 
                 loss = total_mse/batch_size
-                batch_size
+                #batch_size
                 #print('TESTTT:: --', alpha)
                 #print('-ALPHA: ', int(int(alpha).numpy()))
 
@@ -167,7 +156,7 @@ def main():
             
             
                     
-        compiled_model.save("w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        compiled_model.save("results/w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -176,7 +165,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
+        filename = 'results/w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
         #plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
