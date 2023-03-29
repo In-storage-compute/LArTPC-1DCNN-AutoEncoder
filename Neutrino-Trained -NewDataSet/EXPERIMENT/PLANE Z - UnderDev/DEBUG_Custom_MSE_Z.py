@@ -2,17 +2,20 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 import tensorflow as tf
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 def load_data(path, wireplane):
-    x_train = np.load(path+'x_train_Z.npy')
-    x_test = np.load(path+'x_test_Z.npy')
-    y_train = np.load(path+'y_train_AE_Z.npy')
-    y_test = np.load(path+'y_test_AE_Z.npy')
-    mean = x_train.mean()
-    std = x_train.std()
-
+    x_train = np.load(path+'x_train_'+ wireplane +'.npy')
+    x_test = np.load(path+'x_test_'+ wireplane +'.npy')
+    y_train = np.load(path+'y_train_AE_'+ wireplane +'.npy')
+    y_test = np.load(path+'y_test_AE_'+ wireplane +'.npy')
+    
+    mean = np.mean(x_train)
+    std = np.std(x_train)
     x_train_scaled = (x_train-mean)/std
     x_test_scaled = (x_test-mean)/std
+
 
     y_train_scaled = []
     for i in range(len(y_train)):
@@ -23,16 +26,7 @@ def load_data(path, wireplane):
             y_train_scaled.append(scaled)
     y_train_scaled = np.array(y_train_scaled)
 
-    y_test_scaled = []
-    for i in range(len(y_test)):
-        if sum(y_test[i]) == 0:
-            y_test_scaled.append(y_test[i])
-        else:
-            scaled = (y_test[i]-mean)/std
-            y_test_scaled.append(scaled)
-    y_test_scaled = np.array(y_test_scaled)
-
-    return x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std
+    return x_train_scaled, x_test_scaled, y_train_scaled, y_train_scaled, mean, std
 
 def combine_overlapping_ranges(ranges):
     # sort the original list in ascending order according to the first element in each sublist
