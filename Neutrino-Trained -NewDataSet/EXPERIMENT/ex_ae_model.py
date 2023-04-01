@@ -63,15 +63,15 @@ def main():
         
         with tf.device('/GPU:0'):
             x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std = funcs.load_data(path, wireplane)
-            np.save('results/mean_AE_' + wireplane, mean)
-            np.save('results/std_AE_' + wireplane, std)
+            np.save('results/mean_AE_2048_' + wireplane, mean)
+            np.save('results/std_AE_2048_' + wireplane, std)
 
 
             # Converting the numpy array to a tensor.
             #-------------------------------------------------------------------------
             def custom_mse2(y_true, y_pred):
                 np_y_true = y_true.numpy()
-                batch_size = 1  # hard coded for now
+                batch_size = 2048  # hard coded for now
                 
                 y_true_rescaled = np_y_true*std+mean
 
@@ -148,15 +148,15 @@ def main():
 
             history = compiled_model.fit(x_train_scaled,                                                              
                         y_train_scaled,                                                            
-                        batch_size=1,                                              
-                        epochs=50,                                                      
+                        batch_size=2048,                                              
+                        epochs=100,                                                      
                         callbacks= [earlystop], #[NewCallback(alpha)], # callbacks=callbacks_list,
                         validation_split=0.2, shuffle=False,                                                                       
                         verbose=1)
             
             
                     
-        compiled_model.save("results/w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        compiled_model.save("results/w2_fxd_batch_size2048_epochs_100_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -165,7 +165,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'results/w2_fxd_batch_size1_epochs_50_w1_1-w2_dot7' + wireplane + '_loss.png'
+        filename = 'results/w2_fxd_batch_size2048_epochs_100_w1_1-w2_dot7' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
