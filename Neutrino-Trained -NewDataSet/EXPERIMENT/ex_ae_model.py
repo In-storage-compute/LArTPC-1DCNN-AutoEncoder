@@ -62,7 +62,7 @@ def main():
         path = '../processed_data/current/'
         
         with tf.device('/GPU:0'):
-            x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std = funcs.load_data(path, wireplane)
+            x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, x_valid_scaled, y_valid_scaled, mean, std = funcs.load_data(path, wireplane)
             np.save('results/mean_AE_2048_' + wireplane, mean)
             np.save('results/std_AE_2048_' + wireplane, std)
 
@@ -151,12 +151,12 @@ def main():
                         batch_size=2048,                                              
                         epochs=100,                                                      
                         callbacks= [earlystop], #[NewCallback(alpha)], # callbacks=callbacks_list,
-                        validation_split=0.2, shuffle=False,                                                                       
+                        validation_data=(x_valid_scaled, y_valid_scaled),                                                                       
                         verbose=1)
             
             
                     
-        compiled_model.save("results/w2_fxd_batch_size2048_epochs_100_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        compiled_model.save("results/batch_size2048_epochs_100_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -165,7 +165,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'results/w2_fxd_batch_size2048_epochs_100_w1_1-w2_dot7' + wireplane + '_loss.png'
+        filename = 'results/batch_size2048_epochs_100_w1_1-w2_dot7' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()

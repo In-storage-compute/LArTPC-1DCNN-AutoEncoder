@@ -2,22 +2,31 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 
 def load_data(path, wireplane):
     x_train = np.load(path+'x_train_' + wireplane + '.npy')
     x_test = np.load(path+'x_test_' + wireplane + '.npy')
     y_train = np.load(path+'y_train_AE_' + wireplane + '.npy')
     y_test = np.load(path+'y_test_AE_' + wireplane + '.npy')
+    
+    #split train and valid sets (40k train 10k valid) 
+    x_train, x_valid, y_train, y_valid = train_test_split(
+        x_train, y_train, test_size=0.2, shuffle=False
+    )
+    
     mean = x_train.mean()
     std = x_train.std()
 
     x_train_scaled = (x_train-mean)/std
     x_test_scaled = (x_test-mean)/std
+    x_valid_scaled = (x_valid-mean)/std
     
     y_train_scaled = (y_train-mean)/std
     y_test_scaled = (y_test-mean)/std
+    y_valid_scaled = (y_valid-mean)/std
 
-    return x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, mean, std
+    return x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, x_valid_scaled, y_valid_scaled, mean, std
 
 def combine_overlapping_ranges(ranges):
     # sort the original list in ascending order according to the first element in each sublist
