@@ -52,11 +52,12 @@ class Autoencoder:
     
 
 def main():
-    np.random.seed(42)
+    np.random.seed(7)
     args = sys.argv[1:]
     planes_ = ['U', 'V', 'Z']
+    batch_size_ = int(args[2])
     
-    if len(args) == 2 and args[0] == '-plane' and args[1] in planes_:
+    if len(args) == 3 and args[0] == '-plane' and args[1] in planes_:
         start_time = time.time()
         wireplane = args[1]
         path = '../processed_data/current/'
@@ -71,29 +72,30 @@ def main():
             #-------------------------------------------------------------------------
             def custom_mse2(y_true, y_pred):
                 np_y_true = y_true.numpy()
-                batch_size = 1  # hard coded for now
+                batch_size = batch_size_  # hard coded for now
                 
                 y_true_rescaled = np_y_true*std+mean
 
                 sig_ranges = []
                 #print('finding ranges where there are signals: ') 
-                for i in tqdm.trange(len(y_true_rescaled)):
+                for i in range(len(y_true_rescaled)):
                     wave =  y_true_rescaled[i]
                     sig_ranges.append(funcs.merge_ranges(wave, 5))
                 #print("finding ranges where there are no signals: ")
                 no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
                 
 
-                for i in range(len(sig_ranges)):
-                    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
+                #for i in range(len(sig_ranges)):
+                #    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
 
                 #print('calculating MSEs')
                 total_mse = 0
-                for i in tqdm.trange(len(np_y_true)):
+                for i in range(len(np_y_true)):
                         # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
                         total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], sig_ranges[i], no_sig_ranges[i])
                 
-                loss = total_mse/batch_size
+                loss = total_mse/batch_size_
+                #print('batch loss:', loss.numpy())
                 #batch_size
                 #print('TESTTT:: --', alpha)
                 #print('-ALPHA: ', int(int(alpha).numpy()))
@@ -148,15 +150,15 @@ def main():
 
             history = compiled_model.fit(x_train_scaled,                                                              
                         y_train_scaled,                                                            
-                        batch_size=1,                                              
-                        epochs=6,                                                      
+                        batch_size=batch_size_,                                              
+                        epochs=100,                                                      
                         callbacks= [earlystop], #[NewCallback(alpha)], # callbacks=callbacks_list,
                         validation_data=(x_valid_scaled, y_valid_scaled),                                                                       
                         verbose=1)
             
             
                     
-        compiled_model.save("results/batch_size1_epochs_6_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
+        compiled_model.save("results/batch_size" + str(batch_size_) + "_CHECK2_" + wireplane + "plane_nu.h5")
 
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -165,7 +167,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'results/batch_size1_epochs_6_w1_1-w2_dot7' + wireplane + '_loss.png'
+        filename = "results/batch_size" + str(batch_size_) + "CHECK2" + wireplane + "_loss.png"
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()

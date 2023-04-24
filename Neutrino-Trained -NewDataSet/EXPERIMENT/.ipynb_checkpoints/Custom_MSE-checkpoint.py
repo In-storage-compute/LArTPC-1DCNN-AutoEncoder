@@ -28,9 +28,13 @@ def load_data(path, wireplane):
 
     return x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, x_valid_scaled, y_valid_scaled, mean, std
 
+
+from scipy.signal import find_peaks
+
+
 def combine_overlapping_ranges(ranges):
     # sort the original list in ascending order according to the first element in each sublist
-    ranges = sorted(ranges, key=lambda x: x[0])
+    ranges.sort(key=lambda x: x[0])
 
     # initialize the result list
     result = []
@@ -46,45 +50,25 @@ def combine_overlapping_ranges(ranges):
 
     return result
 
-# takes single wave (array), and baseline (the value at which the wave is flat) and returns
-# a list of ranges where there are signals waveforms
-from scipy.signal import find_peaks
-def find_peak_range(array):
-    baseline = 0.001  # after scaling and rescaling, bl not at 0 exactly
+
+def find_peak_range(array, baseline=0.001, max_index=200):
+    # Take the absolute value of the array
     array = abs(array)
-    # find the peaks
+
+    # Find the peaks
     peaks, _ = find_peaks(array)
-    peak_ranges = []
-    start_spc = 0
-    end_spc = 0
 
-    if abs(array[0]) > baseline:
-        end_spc = 0
-        while end_spc < 200 and ((array[end_spc] > baseline) or (array[end_spc] < baseline)):
-            end_spc += 1
+    # Find the peak ranges
+    peak_ranges = [[start, end] for start, end in zip([0] + list(peaks), list(peaks) + [max_index]) 
+                   if (array[start:end] > abs(baseline)).any()]
 
-    for peak in peaks:
-        if peak == end_spc:
-            end = peak
-            while end < 200 and array[end] > abs(baseline):
-                end += 1
-            if [start_spc, end] not in peak_ranges:
-                peak_ranges.append([start_spc, end])
-
-        else:
-            start = peak
-            while start > 0 and array[start] > abs(baseline):
-                start -= 1
-        
-            end = peak
-            while end < 200 and array[end] > abs(baseline):
-                end += 1
-            if [start, end] not in peak_ranges:
-                peak_ranges.append([start, end])
-
+    # Combine any overlapping peak ranges
     peak_ranges = combine_overlapping_ranges(peak_ranges)
 
+    # Return the list of peak ranges
     return peak_ranges
+
+
 
 def merge_ranges(wave, bound):
     # range_b1 is the ranges after merging using bound = 1
