@@ -158,16 +158,16 @@ def main():
             
             
                     
-        compiled_model.save("results/batch_size" + str(batch_size_) + "_CHECK2_" + wireplane + "plane_nu.h5")
-
+        compiled_model.save("results/batch_size" + str(batch_size_) + "_CHECK_" + wireplane + "plane_nu.h5")
+        total_time = int((time.time() - start_time)/60)
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
         plt.plot(history.history['val_loss'], "r", label="Loss of validation data", antialiased=True)
-        plt.title('Model Loss',fontsize=15)                                            
+        plt.title('Model Loss (train time: ' + str(total_time) + ' mins',fontsize=15)                                            
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = "results/batch_size" + str(batch_size_) + "CHECK2" + wireplane + "_loss.png"
+        filename = "results/batch_size" + str(batch_size_) + "CHECK" + wireplane + "_loss.png"
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
