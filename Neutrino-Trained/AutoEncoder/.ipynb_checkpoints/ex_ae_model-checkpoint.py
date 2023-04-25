@@ -52,48 +52,50 @@ class Autoencoder:
     
 
 def main():
-    np.random.seed(42)
+    np.random.seed(7)
     args = sys.argv[1:]
     planes_ = ['U', 'V', 'Z']
+    batch_size_ = int(args[2])
     
-    if len(args) == 2 and args[0] == '-plane' and args[1] in planes_:
+    if len(args) == 3 and args[0] == '-plane' and args[1] in planes_:
         start_time = time.time()
         wireplane = args[1]
         path = '../processed_data/current/'
         
         with tf.device('/GPU:0'):
             x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, x_valid_scaled, y_valid_scaled, mean, std = funcs.load_data(path, wireplane)
-            np.save('results/mean_AE_' + wireplane, mean)
-            np.save('results/std_AE_' + wireplane, std)
+            np.save('results/'+wireplane+'/models/mean_AE_' + wireplane, mean)
+            np.save('results/'+wireplane+'/models/std_AE_' + wireplane, std)
 
 
             # Converting the numpy array to a tensor.
             #-------------------------------------------------------------------------
             def custom_mse2(y_true, y_pred):
                 np_y_true = y_true.numpy()
-                batch_size = 1  # hard coded for now
+                batch_size = batch_size_  # hard coded for now
                 
                 y_true_rescaled = np_y_true*std+mean
 
                 sig_ranges = []
                 #print('finding ranges where there are signals: ') 
-                for i in tqdm.trange(len(y_true_rescaled)):
+                for i in range(len(y_true_rescaled)):
                     wave =  y_true_rescaled[i]
                     sig_ranges.append(funcs.merge_ranges(wave, 5))
                 #print("finding ranges where there are no signals: ")
                 no_sig_ranges = funcs.get_non_signal_ranges(sig_ranges)
                 
 
-                for i in range(len(sig_ranges)):
-                    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
+                #for i in range(len(sig_ranges)):
+                #    print('DEBUG MESSAGE: ',sig_ranges[i], '---', no_sig_ranges[i])
 
                 #print('calculating MSEs')
                 total_mse = 0
-                for i in tqdm.trange(len(np_y_true)):
+                for i in range(len(np_y_true)):
                         # total_mse += funcs.calculate_single_mse(np_y_true[i], np_y_pred[i], sig_ranges[i])
                         total_mse += funcs.calculate_single_mse(y_true[i], y_pred[i], sig_ranges[i], no_sig_ranges[i])
                 
-                loss = total_mse/batch_size
+                loss = total_mse/batch_size_
+                #print('batch loss:', loss.numpy())
                 #batch_size
                 #print('TESTTT:: --', alpha)
                 #print('-ALPHA: ', int(int(alpha).numpy()))
@@ -139,7 +141,7 @@ def main():
             earlystop = tf.keras.callbacks.EarlyStopping(
                 monitor="val_loss",
                 min_delta=0,
-                patience=1,
+                patience=10,
                 verbose=0,
                 mode="auto",
                 baseline=None,
@@ -148,24 +150,24 @@ def main():
 
             history = compiled_model.fit(x_train_scaled,                                                              
                         y_train_scaled,                                                            
-                        batch_size=1,                                              
-                        epochs=6,                                                      
+                        batch_size=batch_size_,                                              
+                        epochs=100,                                                      
                         callbacks= [earlystop], #[NewCallback(alpha)], # callbacks=callbacks_list,
                         validation_data=(x_valid_scaled, y_valid_scaled),                                                                       
                         verbose=1)
             
             
                     
-        compiled_model.save("results/batch_size1_epochs_6_w1_1-w2_dot7_" + wireplane + "plane_nu.h5")
-
+        compiled_model.save('results/'+wireplane+'/models/batch_size' + str(batch_size_) + '_CHECK_' + wireplane + 'plane_nu.h5')
+        total_time = int((time.time() - start_time)/60)
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
         plt.plot(history.history['val_loss'], "r", label="Loss of validation data", antialiased=True)
-        plt.title('Model Loss',fontsize=15)                                            
+        plt.title('Model Loss (train time: ' + str(total_time) + ' mins)',fontsize=15)                                            
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'results/batch_size1_epochs_6_w1_1-w2_dot7' + wireplane + '_loss.png'
+        filename = 'results/'+ wireplane +'/loss_plots/batch_size' + str(batch_size_) + 'CHECK' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()

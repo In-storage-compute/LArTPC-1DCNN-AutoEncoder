@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
 import tqdm
-import Custom_MSE as funcs
+import Custom_MSE_varry_weight as funcs
 import pandas as pd
 import time
 from keras import backend as K
@@ -158,7 +158,7 @@ def main():
             
             
                     
-        compiled_model.save('results/'+wireplane+'/models/batch_size' + str(batch_size_) + '_CHECK_' + wireplane + 'plane_nu.h5')
+        compiled_model.save('results/'+wireplane+'/models/batch_size' + str(batch_size_) + '_w2_dot1_' + wireplane + 'plane_nu.h5')
         total_time = int((time.time() - start_time)/60)
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -167,7 +167,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'results/'+ wireplane +'/loss_plots/batch_size' + str(batch_size_) + 'CHECK' + wireplane + '_loss.png'
+        filename = 'results/'+ wireplane +'/loss_plots/batch_size' + str(batch_size_) + 'w2_dot1' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
