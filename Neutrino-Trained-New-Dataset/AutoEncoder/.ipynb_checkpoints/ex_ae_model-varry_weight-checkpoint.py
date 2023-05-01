@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
 import tqdm
-import Custom_MSE as funcs
+import Custom_MSE_varry_weight as funcs
 import pandas as pd
 import time
 from keras import backend as K
@@ -60,7 +60,7 @@ def main():
     if len(args) == 3 and args[0] == '-plane' and args[1] in planes_:
         start_time = time.time()
         wireplane = args[1]
-        path = '../processed_data/'
+        path = '../processed_data/current/'
         
         with tf.device('/GPU:0'):
             x_train_scaled, x_test_scaled, y_train_scaled, y_test_scaled, x_valid_scaled, y_valid_scaled, mean, std = funcs.load_data(path, wireplane)
@@ -105,7 +105,7 @@ def main():
                 #-------------------------------------------------------------------------------
             
             
-            model = load_model('../ROI_models/model_' + wireplane + 'plane_nu_ROI.h5')
+            model = load_model('../latest_models/model_' + wireplane + 'plane_nu.h5')
             autoencoder = Autoencoder(200, model, x_train_scaled)
             compiled_model = autoencoder.create_model()
 
@@ -158,7 +158,7 @@ def main():
             
             
                     
-        compiled_model.save('results/'+wireplane+'/models/batch_size' + str(batch_size_) + '_' + wireplane + 'plane_nu.h5')
+        compiled_model.save('results/'+wireplane+'/models/batch_size' + str(batch_size_) + '_w2_dot1_' + wireplane + 'plane_nu.h5')
         total_time = int((time.time() - start_time)/60)
         plt.figure(figsize=(12, 8))                                                     
         plt.plot(history.history['loss'], "r--", label="Loss of training data", antialiased=True)
@@ -167,7 +167,7 @@ def main():
         plt.ylabel('Loss (MSE)', fontsize=12)                                                 
         plt.xlabel('Training Epoch', fontsize=12)                                                                                                                       
         plt.legend(fontsize=12)
-        filename = 'results/'+ wireplane +'/loss_plots/batch_size' + str(batch_size_) + '_' + wireplane + '_loss.png'
+        filename = 'results/'+ wireplane +'/loss_plots/batch_size' + str(batch_size_) + 'w2_dot1' + wireplane + '_loss.png'
         plt.savefig(filename, facecolor='w', bbox_inches='tight')
         plt.close()
         #plt.show()
