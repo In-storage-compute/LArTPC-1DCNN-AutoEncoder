@@ -50,7 +50,7 @@ def filter_signal_ADC_max(data, clean_data, adc_max):
     data_wf = []
     clean_wf = []
     for i in range(clean_data.shape[0]):
-        if max(clean_data[i]) < adc_max:
+        if max(clean_data[i]) <= adc_max:
             data_wf.append(data[i])
             clean_wf.append(clean_data[i])
     data_wf = np.array(data_wf)
@@ -85,13 +85,14 @@ def get_data(wireplane):
     sig_name = wireplane+"-signal"
     cln_name = wireplane+"-clnsig"
     
-    filenames1 = [path_cc+f for f in listdir(path_cc) if (isfile(join(path_cc, f)) and sig_name in f)]
-    clean_filenames1 = [path_cc+f for f in listdir(path_cc) if (isfile(join(path_cc, f)) and cln_name in f)]
-    filenames2 = [path_es+f for f in listdir(path_es) if (isfile(join(path_es, f)) and sig_name in f)]
-    clean_filenames2 = [path_es+f for f in listdir(path_es) if (isfile(join(path_es, f)) and cln_name in f)]
+    filenames1 = sorted([path_cc+f for f in listdir(path_cc) if (isfile(join(path_cc, f)) and sig_name in f)])
+    clean_filenames1 = sorted([path_cc+f for f in listdir(path_cc) if (isfile(join(path_cc, f)) and cln_name in f)])
+    filenames2 = sorted([path_es+f for f in listdir(path_es) if (isfile(join(path_es, f)) and sig_name in f)])
+    clean_filenames2 = sorted([path_es+f for f in listdir(path_es) if (isfile(join(path_es, f)) and cln_name in f)])
     filenames =  filenames1+filenames2
     clean_filenames = clean_filenames1+clean_filenames2
-    noise_filenames = [f for f in listdir(noise_path) if (isfile(join(noise_path, f)) and wireplane in f)]
+    noise_filenames = sorted([f for f in listdir(noise_path) if (isfile(join(noise_path, f)) and wireplane in f)])
+
 
     combined_data = np.concatenate([np.load(fname) for fname in filenames])
     combined_clean_data = np.concatenate([np.load(fname) for fname in clean_filenames])
