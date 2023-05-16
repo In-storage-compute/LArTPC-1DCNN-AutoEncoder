@@ -105,7 +105,7 @@ def _adc_grouping_helper(dataset_x, dataset_y):
     for i, wave in enumerate(dataset_y):
         max_adc = max(abs(wave))
         if max_adc >=0 and max_adc <= 3:
-            adc_0_3_x.append[dataset_x[i]]
+            adc_0_3_x.append(dataset_x[i])
             adc_0_3_y.append(wave)
         elif max_adc >= 4 and max_adc <= 6:
             adc_4_6_x.append(dataset_x[i])
@@ -130,6 +130,7 @@ def _adc_grouping_helper(dataset_x, dataset_y):
             adc_gt_21_y.append(wave)
 
     grouped_waves = [
+                    [adc_0_3_x, adc_0_3_y],
                     [adc_4_6_x, adc_4_6_y],
                     [adc_7_9_x, adc_7_9_y],
                     [adc_10_12_x, adc_10_12_y],
@@ -139,13 +140,13 @@ def _adc_grouping_helper(dataset_x, dataset_y):
                     [adc_gt_21_x, adc_gt_21_y]  
                     ]
     print(' 0: adc_0_3 \
-            0: adc_4_6 \
-            1: adc_7_9 \
-            2: adc_10_12 \
-            3: adc_13_15 \
-            4: adc_16_18 \
-            5: adc_19_21 \
-            6: adc_gt_21\
+            1: adc_4_6 \
+            2: adc_7_9 \
+            3: adc_10_12 \
+            4: adc_13_15 \
+            5: adc_16_18 \
+            6: adc_19_21 \
+            7: adc_gt_21\
           ')
     print()
     
@@ -153,13 +154,14 @@ def _adc_grouping_helper(dataset_x, dataset_y):
     return grouped_waves
 
 group_num_labels = {
-                    0: 'adc_4_6',
-                    1: 'adc_7_9',
-                    2: 'adc_10_12',
-                    3: 'adc_13_15',
-                    4: 'adc_16_18',
-                    5: 'adc_19_21',
-                    6: 'adc_gt_21'
+                    0: 'adc_0_3',
+                    1: 'adc_4_6',
+                    2: 'adc_7_9',
+                    3: 'adc_10_12',
+                    4: 'adc_13_15',
+                    5: 'adc_16_18',
+                    6: 'adc_19_21',
+                    7: 'adc_gt_21'
                     }
 
 # prints summary
@@ -168,7 +170,7 @@ def adc_grouping(data_x, data_y):
     sum_ = 0
     
     res = []
-    for i in range(7):
+    for i in range(8):
         count = len(grouped[i][0])
         print(group_num_labels[i])
         print('{:<12}{}'.format('count', count))
