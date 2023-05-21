@@ -52,7 +52,8 @@ def get_data(wireplane, path):
 
     path_cc = path+'nu_cc/'
     path_es = path+'nu_es/'
-    noise_path = path+'noise/'
+    #noise_path = path+'noise/'
+    noise_path = '/home/vlian/Workspace/more-noise/'
     print('nu_cc: ', path_cc)
     print('nu_es: ', path_es)
     print('noise: ', noise_path)
@@ -69,9 +70,9 @@ def get_data(wireplane, path):
     clean_filenames = clean_filenames1+clean_filenames2
     noise_filenames = sorted([f for f in listdir(noise_path) if (isfile(join(noise_path, f)) and wireplane in f)])
 
-    combined_data = np.concatenate([np.load(fname) for fname in filenames])
-    combined_clean_data = np.concatenate([np.load(fname) for fname in clean_filenames])
-    combined_noise = np.concatenate([np.load(noise_path+fname) for fname in noise_filenames])
+    combined_data = np.concatenate([np.load(fname, mmap_mode='r') for fname in filenames])
+    combined_clean_data = np.concatenate([np.load(fname, mmap_mode='r') for fname in clean_filenames])
+    combined_noise = np.concatenate([np.load(noise_path+fname, mmap_mode='r') for fname in noise_filenames], )
     print('--------data loaded!-------')
 
     return combined_data, combined_clean_data, combined_noise
@@ -210,4 +211,7 @@ def process_data(wireplane,path,ADC_MIN):
     print('     noise+signal : ', signal_waveforms.shape)
     print('     clean signal : ', clean_signal_waveforms.shape)
 
-    return signal_waveforms, clean_signal_waveforms
+    noise_waveforms = get_std_waveforms(combined_noise, nticks)
+    noiseless_waveform = noise_waveforms*0 # for autoencoder
+
+    return signal_waveforms, clean_signal_waveforms, noise_waveforms, noiseless_waveform
