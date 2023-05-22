@@ -66,7 +66,7 @@ def filter_signal_ADC_min(data, clean_data, adc_min):
     data_wf = []
     clean_wf = []
     for i in range(clean_data.shape[0]):
-        if max(clean_data[i]) > adc_min:
+        if max(abs(clean_data[i])) >= adc_min:
             data_wf.append(data[i])
             clean_wf.append(clean_data[i])
     data_wf = np.array(data_wf)
@@ -78,75 +78,67 @@ def filter_signal_ADC_min(data, clean_data, adc_min):
 # splits data set into subsets based on ADC ranges
 def _adc_grouping_helper(dataset_x, dataset_y):
 
-    adc_0_3_x = []
-    adc_0_3_y = []
+    adc_5_7_x = []
+    adc_5_7_y = []
 
-    adc_4_6_x = []
-    adc_4_6_y = []
+    adc_8_10_x = []
+    adc_8_10_y = []
 
-    adc_7_9_x = []
-    adc_7_9_y = []
+    adc_11_13_x = []
+    adc_11_13_y = []
 
-    adc_10_12_x = []
-    adc_10_12_y = []
+    adc_14_16_x = []
+    adc_14_16_y = []
 
-    adc_13_15_x = []
-    adc_13_15_y = []
+    adc_17_19_x = []
+    adc_17_19_y = []
 
-    adc_16_18_x = []
-    adc_16_18_y = []
+    adc_20_22_x = []
+    adc_20_22_y = []
 
-    adc_19_21_x = []
-    adc_19_21_y = []
-
-    adc_gt_21_x = []
-    adc_gt_21_y = []
+    adc_gt_22_x = []
+    adc_gt_22_y = []
 
     for i, wave in enumerate(dataset_y):
         max_adc = max(abs(wave))
-        if max_adc >=0 and max_adc <= 3:
-            adc_0_3_x.append(dataset_x[i])
-            adc_0_3_y.append(wave)
-        elif max_adc >= 4 and max_adc <= 6:
-            adc_4_6_x.append(dataset_x[i])
-            adc_4_6_y.append(wave)
-        elif max_adc >= 7 and max_adc <=9:
-            adc_7_9_x.append(dataset_x[i])
-            adc_7_9_y.append(wave)
-        elif max_adc >= 10 and max_adc <= 12:
-            adc_10_12_x.append(dataset_x[i])
-            adc_10_12_y.append(wave)
-        elif max_adc >= 13 and max_adc <= 15:
-            adc_13_15_x.append(dataset_x[i])
-            adc_13_15_y.append(wave)
-        elif max_adc >= 16 and max_adc <= 18:
-            adc_16_18_x.append(dataset_x[i])
-            adc_16_18_y.append(wave)
-        elif max_adc >= 19 and max_adc <= 21:
-            adc_19_21_x.append(dataset_x[i])
-            adc_19_21_y.append(wave)
-        else:
-            adc_gt_21_x.append(dataset_x[i])
-            adc_gt_21_y.append(wave)
+        if max_adc >=5 and max_adc <= 7:
+            adc_5_7_x.append(dataset_x[i])
+            adc_5_7_y.append(wave)
+        elif max_adc >= 8 and max_adc <= 10:
+            adc_8_10_x.append(dataset_x[i])
+            adc_8_10_y.append(wave)
+        elif max_adc >= 11 and max_adc <=13:
+            adc_11_13_x.append(dataset_x[i])
+            adc_11_13_y.append(wave)
+        elif max_adc >= 14 and max_adc <= 16:
+            adc_14_16_x.append(dataset_x[i])
+            adc_14_16_y.append(wave)
+        elif max_adc >= 17 and max_adc <= 19:
+            adc_17_19_x.append(dataset_x[i])
+            adc_17_19_y.append(wave)
+        elif max_adc >= 20 and max_adc <= 22:
+            adc_20_22_x.append(dataset_x[i])
+            adc_20_22_y.append(wave)
+        elif max_adc > 22:
+            adc_gt_22_x.append(dataset_x[i])
+            adc_gt_22_y.append(wave)
 
     grouped_waves = [
-                    [adc_0_3_x, adc_0_3_y],
-                    [adc_4_6_x, adc_4_6_y],
-                    [adc_7_9_x, adc_7_9_y],
-                    [adc_10_12_x, adc_10_12_y],
-                    [adc_13_15_x, adc_13_15_y],
-                    [adc_16_18_x, adc_16_18_y],
-                    [adc_19_21_x, adc_19_21_y],
-                    [adc_gt_21_x, adc_gt_21_y]  
+                    [adc_5_7_x, adc_5_7_y],
+                    [adc_8_10_x, adc_8_10_y],
+                    [adc_11_13_x, adc_11_13_y],
+                    [adc_14_16_x, adc_14_16_y],
+                    [adc_17_19_x, adc_17_19_y],
+                    [adc_20_22_x, adc_20_22_y],
+                    [adc_gt_22_x, adc_gt_22_y]
                     ]
-    print(' 0: adc_0_3 \
-            1: adc_4_6 \
-            2: adc_7_9 \
-            3: adc_10_12 \
-            4: adc_13_15 \
-            5: adc_16_18 \
-            6: adc_19_21 \
-            7: adc_gt_21\
+    print(' 0: adc_5_7 \
+            1: adc_8_10 \
+            2: adc_11_13 \
+            3: adc_14_16 \
+            4: adc_17_19 \
+            5: adc_20_22 \
+            6: adc_gt_22 \
           ')
     print()
     
@@ -154,14 +146,13 @@ def _adc_grouping_helper(dataset_x, dataset_y):
     return grouped_waves
 
 group_num_labels = {
-                    0: 'adc_0_3',
-                    1: 'adc_4_6',
-                    2: 'adc_7_9',
-                    3: 'adc_10_12',
-                    4: 'adc_13_15',
-                    5: 'adc_16_18',
-                    6: 'adc_19_21',
-                    7: 'adc_gt_21'
+                    0: 'adc_5_7',
+                    1: 'adc_8_10',
+                    2: 'adc_11_13',
+                    3: 'adc_14_16',
+                    4: 'adc_17_19',
+                    5: 'adc_20_22',
+                    6: 'adc_gt_22',
                     }
 
 # prints summary
@@ -170,7 +161,7 @@ def adc_grouping(data_x, data_y):
     sum_ = 0
     
     res = []
-    for i in range(8):
+    for i in range(7):
         count = len(grouped[i][0])
         print(group_num_labels[i])
         print('{:<12}{}'.format('count', count))
