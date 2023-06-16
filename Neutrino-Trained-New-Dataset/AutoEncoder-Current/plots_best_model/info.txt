@@ -1,0 +1,7 @@
+These are plots for the model with no pooling layers.
+
+Trained with ~80k Ar39 samples at ADC between 5 and 7, and ~80k Ar39 samples with ADC between 8 and 10
+
+    * In total there are 160k Ar39 samples in the training set and 160k electronic noise samples all mixed and shuffled together
+
+Testing set: 200k samples with ADC between 5 and 10 + 200k noise mixed and shuffled

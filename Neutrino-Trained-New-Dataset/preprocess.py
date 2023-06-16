@@ -63,7 +63,7 @@ def filter_signal_ADC_min(data, clean_data, adc_min):
     data_wf = []
     clean_wf = []
     for i in range(clean_data.shape[0]):
-        if max(clean_data[i]) > adc_min:
+        if max(clean_data[i]) >= adc_min:
             data_wf.append(data[i])
             clean_wf.append(clean_data[i])
     data_wf = np.array(data_wf)
