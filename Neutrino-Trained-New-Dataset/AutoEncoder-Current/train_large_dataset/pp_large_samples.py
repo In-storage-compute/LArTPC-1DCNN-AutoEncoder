@@ -30,7 +30,7 @@ def filter_signal_ADC_min(data, clean_data, adc_min):
     data_wf = []
     clean_wf = []
     for i in range(clean_data.shape[0]):
-        if max(abs(clean_data[i])) >= adc_min:
+        if max(clean_data[i]) >= adc_min:
             data_wf.append(data[i])
             clean_wf.append(clean_data[i])
     data_wf = np.array(data_wf)
@@ -62,7 +62,7 @@ def get_data(wireplane, path):
 
     combined_data = np.concatenate([np.load(fname, mmap_mode='r') for fname in filenames])
     combined_clean_data = np.concatenate([np.load(fname, mmap_mode='r') for fname in clean_filenames])
-    combined_noise = np.concatenate([np.load(noise_path+fname, mmap_mode='r') for fname in noise_filenames], )
+    combined_noise = np.concatenate([np.load(noise_path+fname, mmap_mode='r') for fname in noise_filenames])
     print('--------data loaded!-------')
 
     return combined_data, combined_clean_data, combined_noise
@@ -95,7 +95,7 @@ def _adc_grouping_helper(dataset_x, dataset_y):
     adc_gt_22_y = []
 
     for i, wave in enumerate(dataset_y):
-        max_adc = max(abs(wave))
+        max_adc = max((wave))
         if max_adc >=5 and max_adc <= 7:
             adc_5_7_x.append(dataset_x[i])
             adc_5_7_y.append(wave)
