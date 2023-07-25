@@ -3,7 +3,6 @@ from os import listdir
 from os.path import isfile, join
 import numpy as np
 
-
 # takes full raw data and extracts waveform of length nticks 
 def extract_wave(data, nticks):
     string = 'tck_'
@@ -23,50 +22,6 @@ def get_std_waveforms(data, nticks):
     #print(raw_waveforms) 
     #scaled_waveforms = waveform_scaler.fit_transform(raw_waveforms)
     return raw_waveforms
-
-# imposes a min ADC value and filters waves
-# takes wavefroms as input
-def filter_signal_ADC_min(data, clean_data, adc_min):
-    data_wf = []
-    clean_wf = []
-    for i in range(clean_data.shape[0]):
-        if max(clean_data[i]) >= adc_min:
-            data_wf.append(data[i])
-            clean_wf.append(clean_data[i])
-    data_wf = np.array(data_wf)
-    clean_wf = np.array(clean_wf)
-    return data_wf, clean_wf
-
-# data loader
-def get_data(wireplane, path):
-
-    path_cc = path+'nu_cc/'
-    path_es = path+'nu_es/'
-    #noise_path = path+'noise/'
-    noise_path = '/home/vlian/Workspace/more-noise/'
-    print('nu_cc: ', path_cc)
-    print('nu_es: ', path_es)
-    print('noise: ', noise_path)
-    print('')
-    print('----------loading----------')
-    sig_name = wireplane+"-signal"
-    cln_name = wireplane+"-clnsig"
-    
-    filenames1 = sorted([path_cc+f for f in listdir(path_cc) if (isfile(join(path_cc, f)) and sig_name in f)])
-    clean_filenames1 = sorted([path_cc+f for f in listdir(path_cc) if (isfile(join(path_cc, f)) and cln_name in f)])
-    filenames2 = sorted([path_es+f for f in listdir(path_es) if (isfile(join(path_es, f)) and sig_name in f)])
-    clean_filenames2 = sorted([path_es+f for f in listdir(path_es) if (isfile(join(path_es, f)) and cln_name in f)])
-    filenames =  filenames1+filenames2
-    clean_filenames = clean_filenames1+clean_filenames2
-    noise_filenames = sorted([f for f in listdir(noise_path) if (isfile(join(noise_path, f)) and wireplane in f)])
-
-    combined_data = np.concatenate([np.load(fname, mmap_mode='r') for fname in filenames])
-    combined_clean_data = np.concatenate([np.load(fname, mmap_mode='r') for fname in clean_filenames])
-    combined_noise = np.concatenate([np.load(noise_path+fname, mmap_mode='r') for fname in noise_filenames])
-    print('--------data loaded!-------')
-
-    return combined_data, combined_clean_data, combined_noise
-
 
 # dataset_x -> noisy signal waveforms
 # dataset_y -> clean signal waveforms
@@ -167,33 +122,3 @@ def adc_grouping(data_x, data_y):
     print('{:<15}{}'.format('     Total:', sum_))
 
     return [grouped, res]
-
-
-def process_data(wireplane,path,ADC_MIN):
-    nticks = 200
-    # load raw data
-    combined_data, combined_clean_data, combined_noise = get_data(wireplane, path)
-    print('---------------------------------')
-    print('     signal+noise: ', len(combined_data))
-    print('     clean signal: ', len(combined_clean_data))
-    print('     noise       : ', len(combined_noise))
-    print('---------------------------------')
-
-    # extract waveforms
-    signal_waveforms = get_std_waveforms(combined_data, nticks)
-    clean_signal_waveforms = get_std_waveforms(combined_clean_data, nticks)  # for autoencoder
-    print('')
-    print('filtering out small signals --> ADC >', ADC_MIN)
-    print('     noise+signal : ', signal_waveforms.shape)
-    print('     clean signal : ', clean_signal_waveforms.shape)
-    #Filter out tiny signals < ADC_MIN, but leave big signals to test on (incl > ADC_MAX)
-    signal_waveforms, clean_signal_waveforms = filter_signal_ADC_min(signal_waveforms,
-                                                clean_signal_waveforms, ADC_MIN)
-    print('------------after filtering------------')
-    print('     noise+signal : ', signal_waveforms.shape)
-    print('     clean signal : ', clean_signal_waveforms.shape)
-
-    noise_waveforms = get_std_waveforms(combined_noise, nticks)
-    noiseless_waveform = noise_waveforms*0 # for autoencoder
-
-    return signal_waveforms, clean_signal_waveforms, noise_waveforms, noiseless_waveform
